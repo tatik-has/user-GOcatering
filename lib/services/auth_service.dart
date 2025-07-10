@@ -5,10 +5,13 @@ import '../models/user.dart';
 
 class AuthService {
   // Ganti dengan URL API website Anda
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
-  
+  static const String baseUrl = 'http://192.168.0.107:8000/api';
+
   // Login
-  static Future<Map<String, dynamic>> login(String email, String password) async {
+  static Future<Map<String, dynamic>> login(
+    String email,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
@@ -16,10 +19,7 @@ class AuthService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       final data = jsonDecode(response.body);
@@ -29,23 +29,18 @@ class AuthService {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
         await prefs.setString('user_data', jsonEncode(data['user']));
-        
+
         return {
           'success': true,
           'message': 'Login berhasil',
+          'token': data['token'], // tambahkan ini
           'user': User.fromJson(data['user']),
         };
       } else {
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Login gagal',
-        };
+        return {'success': false, 'message': data['message'] ?? 'Login gagal'};
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Koneksi bermasalah: $e',
-      };
+      return {'success': false, 'message': 'Koneksi bermasalah: $e'};
     }
   }
 
@@ -86,10 +81,7 @@ class AuthService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Koneksi bermasalah: $e',
-      };
+      return {'success': false, 'message': 'Koneksi bermasalah: $e'};
     }
   }
 
@@ -129,7 +121,10 @@ class AuthService {
       if (response.statusCode == 200) {
         return {'success': true, 'user': data};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Gagal ambil data'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Gagal ambil data',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Error: $e'};

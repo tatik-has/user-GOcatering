@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/menu_models.dart';
 
 class ProductService {
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  static const String baseUrl = 'http://192.168.0.107:8000/api';
   
   static Future<Map<String, dynamic>> getMenu() async {
     try {

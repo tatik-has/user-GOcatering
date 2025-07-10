@@ -1,6 +1,7 @@
 // kuliner_screen.dart
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/menu_models.dart';
 import '../utils/constants.dart';
@@ -14,6 +15,10 @@ class KulinerScreen extends StatefulWidget {
   State<KulinerScreen> createState() => _KulinerScreenState();
 }
 
+final TextEditingController _phoneController = TextEditingController();
+final TextEditingController _addressController = TextEditingController();
+final TextEditingController _requestController = TextEditingController();
+
 class _KulinerScreenState extends State<KulinerScreen> {
   int quantity = 1;
   bool isOrdering = false;
@@ -25,10 +30,7 @@ class _KulinerScreenState extends State<KulinerScreen> {
   void initState() {
     super.initState();
     // Add main item as first selected item
-    selectedItems.add(OrderItem(
-      kuliner: widget.kuliner,
-      quantity: quantity,
-    ));
+    selectedItems.add(OrderItem(kuliner: widget.kuliner, quantity: quantity));
     _loadAdditionalMenus();
   }
 
@@ -40,7 +42,7 @@ class _KulinerScreenState extends State<KulinerScreen> {
 
       // Call your API to fetch menus
       await _fetchMenusFromAPI();
-      
+
       setState(() {
         isLoadingMenus = false;
       });
@@ -63,22 +65,27 @@ class _KulinerScreenState extends State<KulinerScreen> {
   Future<List<Kuliner>> _fetchMenusFromAPI() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}/api/menu'), // Adjust endpoint as needed
+        Uri.parse(
+          '${AppConstants.baseUrl}/api/menu',
+        ), // Adjust endpoint as needed
         headers: {'Accept': 'application/json'},
       );
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         // Adjust based on your API response structure
-        List<Kuliner> menus = (data['data'] as List)
-            .map((item) => Kuliner.fromJson(item))
-            .where((menu) => menu.id != widget.kuliner.id) // Exclude current item
-            .toList();
-        
+        List<Kuliner> menus =
+            (data['data'] as List)
+                .map((item) => Kuliner.fromJson(item))
+                .where(
+                  (menu) => menu.id != widget.kuliner.id,
+                ) // Exclude current item
+                .toList();
+
         setState(() {
           additionalMenus = menus;
         });
-        
+
         return menus;
       } else {
         throw Exception('Failed to load menus: ${response.statusCode}');
@@ -117,143 +124,144 @@ class _KulinerScreenState extends State<KulinerScreen> {
             children: [
               // Main Item Section
               _buildMainItemSection(),
-              
+
               const SizedBox(height: 30),
-              
+
               // Additional Menu Section
               _buildAdditionalMenuSection(),
-              
+
               const SizedBox(height: 100), // Space for bottom button
             ],
           ),
         ),
       ),
-      
+
       // Bottom Order Button
       bottomNavigationBar: _buildBottomButton(),
     );
   }
 
   Widget _buildMainItemSection() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Main Item Card
-      _buildMenuCard(widget.kuliner, quantity, isMainItem: true),
-
-      const SizedBox(height: 16),
-
-      // Quantity Selector
-      _buildQuantitySelector(),
-
-      const SizedBox(height: 16),
-
-      // Tampilkan tambahan menu dengan style kartu besar
-      if (selectedItems.length > 1) ...[
-        const Text(
-          'Menu Tambahan:',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        
-        Column(
-          children: selectedItems
-              .where((item) => item.kuliner.id != widget.kuliner.id)
-              .map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildMenuCard(item.kuliner, item.quantity),
-                  ))
-              .toList(),
-        ),
-      ],
-    ],
-  );
-}
-
-Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Gambar
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: 80,
-            height: 80,
-            color: Colors.grey[200],
-            child: kuliner.gambar?.isNotEmpty ?? false
-                ? Image.network(
-                    '${AppConstants.imageUrl}/storage/${kuliner.gambar}',
-                    fit: BoxFit.cover,
-                  )
-                : const Icon(Icons.restaurant, size: 40, color: Colors.grey),
+        // Main Item Card
+        _buildMenuCard(widget.kuliner, quantity, isMainItem: true),
+
+        const SizedBox(height: 16),
+
+        // Quantity Selector
+        _buildQuantitySelector(),
+
+        const SizedBox(height: 16),
+
+        // Tampilkan tambahan menu dengan style kartu besar
+        if (selectedItems.length > 1) ...[
+          const Text(
+            'Menu Tambahan:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-        ),
+          const SizedBox(height: 12),
 
-        const SizedBox(width: 16),
-
-        // Konten
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                kuliner.nama,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                kuliner.deskripsi.isNotEmpty
-                    ? kuliner.deskripsi
-                    : 'Sesuaikan harga dengan budget yang tersedia',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                kuliner.harga,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
+          Column(
+            children:
+                selectedItems
+                    .where((item) => item.kuliner.id != widget.kuliner.id)
+                    .map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildMenuCard(item.kuliner, item.quantity),
+                      ),
+                    )
+                    .toList(),
           ),
-        ),
-
-        if (!isMainItem) ...[
-          const SizedBox(width: 12),
-          Text('x$qty', style: const TextStyle(fontSize: 14)),
         ],
       ],
-    ),
-  );
-}
+    );
+  }
 
+  Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Gambar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 80,
+              height: 80,
+              color: Colors.grey[200],
+              child:
+                  kuliner.gambar?.isNotEmpty ?? false
+                      ? Image.network(
+                        '${AppConstants.imageUrl}/storage/${kuliner.gambar}',
+                        fit: BoxFit.cover,
+                      )
+                      : const Icon(
+                        Icons.restaurant,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          // Konten
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  kuliner.nama,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  kuliner.deskripsi.isNotEmpty
+                      ? kuliner.deskripsi
+                      : 'Sesuaikan harga dengan budget yang tersedia',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  kuliner.harga,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (!isMainItem) ...[
+            const SizedBox(width: 12),
+            Text('x$qty', style: const TextStyle(fontSize: 14)),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _buildAdditionalMenuSection() {
     return Column(
@@ -268,7 +276,7 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Additional Menu Grid
         _buildAdditionalMenuGrid(),
       ],
@@ -290,10 +298,7 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
         padding: const EdgeInsets.all(20),
         child: const Text(
           'Tidak ada menu tambahan tersedia',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey,
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey),
           textAlign: TextAlign.center,
         ),
       );
@@ -311,8 +316,10 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
       itemCount: additionalMenus.length,
       itemBuilder: (context, index) {
         final menu = additionalMenus[index];
-        final isSelected = selectedItems.any((item) => item.kuliner.id == menu.id);
-        
+        final isSelected = selectedItems.any(
+          (item) => item.kuliner.id == menu.id,
+        );
+
         return GestureDetector(
           onTap: () => _toggleAdditionalMenu(menu),
           child: Column(
@@ -321,7 +328,10 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.green.withOpacity(0.1) : Colors.grey[200],
+                  color:
+                      isSelected
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.grey[200],
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected ? Colors.green : Colors.transparent,
@@ -359,11 +369,7 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
         fit: BoxFit.cover,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
-          );
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         },
         errorBuilder: (context, error, stackTrace) {
           return _buildPlaceholderImage();
@@ -381,40 +387,24 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
         fit: BoxFit.cover,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 1,
-            ),
-          );
+          return const Center(child: CircularProgressIndicator(strokeWidth: 1));
         },
         errorBuilder: (context, error, stackTrace) {
           return const Center(
-            child: Icon(
-              Icons.restaurant,
-              size: 24,
-              color: Colors.grey,
-            ),
+            child: Icon(Icons.restaurant, size: 24, color: Colors.grey),
           );
         },
       );
     } else {
       return const Center(
-        child: Icon(
-          Icons.restaurant,
-          size: 24,
-          color: Colors.grey,
-        ),
+        child: Icon(Icons.restaurant, size: 24, color: Colors.grey),
       );
     }
   }
 
   Widget _buildPlaceholderImage() {
     return const Center(
-      child: Icon(
-        Icons.restaurant,
-        size: 40,
-        color: Colors.grey,
-      ),
+      child: Icon(Icons.restaurant, size: 40, color: Colors.grey),
     );
   }
 
@@ -430,21 +420,21 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
         children: [
           const Text(
             'Harga',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
           Row(
             children: [
               IconButton(
-                onPressed: quantity > 1 ? () {
-                  setState(() {
-                    quantity--;
-                    // Update main item quantity
-                    selectedItems[0].quantity = quantity;
-                  });
-                } : null,
+                onPressed:
+                    quantity > 1
+                        ? () {
+                          setState(() {
+                            quantity--;
+                            // Update main item quantity
+                            selectedItems[0].quantity = quantity;
+                          });
+                        }
+                        : null,
                 icon: Container(
                   width: 30,
                   height: 30,
@@ -470,13 +460,16 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
                 ),
               ),
               IconButton(
-                onPressed: quantity < 99 ? () {
-                  setState(() {
-                    quantity++;
-                    // Update main item quantity
-                    selectedItems[0].quantity = quantity;
-                  });
-                } : null,
+                onPressed:
+                    quantity < 99
+                        ? () {
+                          setState(() {
+                            quantity++;
+                            // Update main item quantity
+                            selectedItems[0].quantity = quantity;
+                          });
+                        }
+                        : null,
                 icon: Container(
                   width: 30,
                   height: 30,
@@ -484,11 +477,7 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
                     color: quantity < 99 ? Colors.orange : Colors.grey[300],
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 16,
-                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 16),
                 ),
               ),
             ],
@@ -500,7 +489,7 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
 
   Widget _buildBottomButton() {
     int totalItems = selectedItems.fold(0, (sum, item) => sum + item.quantity);
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -524,133 +513,207 @@ Widget _buildMenuCard(Kuliner kuliner, int qty, {bool isMainItem = false}) {
           ),
           elevation: 0,
         ),
-        child: isOrdering 
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        child:
+            isOrdering
+                ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                : Text(
+                  'Pesan ($totalItems)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              )
-            : Text(
-                'Pesan ($totalItems)',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
       ),
     );
   }
 
   void _toggleAdditionalMenu(Kuliner menu) {
     setState(() {
-      final existingIndex = selectedItems.indexWhere((item) => item.kuliner.id == menu.id);
-      
+      final existingIndex = selectedItems.indexWhere(
+        (item) => item.kuliner.id == menu.id,
+      );
+
       if (existingIndex != -1) {
         // Remove if already selected
         selectedItems.removeAt(existingIndex);
       } else {
         // Add new item
-        selectedItems.add(OrderItem(
-          kuliner: menu,
-          quantity: 1,
-        ));
+        selectedItems.add(OrderItem(kuliner: menu, quantity: 1));
       }
     });
   }
 
   Future<void> _orderNow() async {
-  setState(() {
-    isOrdering = true;
-  });
+    _phoneController.clear();
+    _addressController.clear();
+    _requestController.clear();
 
-  try {
-    // Hitung total_amount dengan mengonversi harga menjadi double
-    final totalAmount = selectedItems.fold(0.0, (sum, item) {
-      // Mengonversi harga menjadi double jika perlu
-      final price = double.tryParse(item.kuliner.harga) ?? 0.0; // Ganti dengan 0.0 jika konversi gagal
-      return sum + (price * item.quantity);
-    });
-
-    // Siapkan data untuk dikirim
-    final orderData = {
-      'customer_name': 'John Doe', // Ganti dengan nama pelanggan
-      'customer_phone': '1234567890', // Ganti dengan nomor telepon pelanggan
-      'items': selectedItems.map((item) {
-        return {
-          'menu_id': item.kuliner.id,
-          'menu_name': item.kuliner.nama,
-          'quantity': item.quantity,
-          'price': item.kuliner.harga, // Pastikan harga dalam format yang benar
-        };
-      }).toList(),
-      'total_amount': totalAmount, // Gunakan totalAmount yang sudah dihitung
-      'delivery_address': 'Jl. Contoh No. 123', // Ganti dengan alamat pengiriman
-    };
-
-    // Kirim data ke API
-    final response = await http.post(
-      Uri.parse('${AppConstants.baseUrl}/api/pemesanan'), // Ganti dengan endpoint yang sesuai
-      headers: {
-        'Content-Type': 'application/json',
-        // Tambahkan authorization header jika diperlukan
-        // 'Authorization': 'Bearer $token',
-      },
-      body: json.encode(orderData),
-    );
-
-    if (response.statusCode == 201) {
-      // Tampilkan dialog sukses
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Pesanan Berhasil'),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Pesan dikonfirmasi'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Pesanan Anda telah berhasil dibuat:'),
-              const SizedBox(height: 8),
-              ...selectedItems.map((item) => Text(
-                '• ${item.kuliner.nama} x${item.quantity}',
-                style: const TextStyle(fontSize: 14),
-              )),
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'No handphone:'),
+              ),
+              TextField(
+                controller: _addressController,
+                decoration: const InputDecoration(labelText: 'Alamat lengkap:'),
+              ),
+              TextField(
+                controller: _requestController,
+                decoration: const InputDecoration(
+                  labelText: 'Request (opsional):',
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Ringkasan pesanan:'),
+                    const SizedBox(height: 4),
+                    ...selectedItems.map(
+                      (item) => Text(
+                        '${item.kuliner.nama} x${item.quantity}  ${item.kuliner.harga}',
+                      ),
+                    ),
+                    Text(
+                      'Total: ${selectedItems.fold<double>(0.0, (sum, item) => sum + (double.tryParse(item.kuliner.harga) ?? 0) * item.quantity)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Close kuliner screen
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_phoneController.text.isEmpty ||
+                    _addressController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Nomor dan alamat wajib diisi'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.pop(context); // close dialog
+                await _submitOrder();
               },
-              child: const Text('OK'),
+              child: const Text('Kirim'),
             ),
           ],
-        ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submitOrder() async {
+    setState(() => isOrdering = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Token tidak ditemukan'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => isOrdering = false);
+        return;
+      }
+
+      final totalAmount = selectedItems.fold<double>(0.0, (sum, item) {
+        final price = double.tryParse(item.kuliner.harga) ?? 0.0;
+        return sum + (price * item.quantity);
+      });
+
+      final orderData = {
+        'customer_phone': _phoneController.text,
+        'delivery_address': _addressController.text,
+        'customer_note': _requestController.text,
+        'items':
+            selectedItems
+                .map(
+                  (item) => {
+                    'menu_id': item.kuliner.id,
+                    'menu_name': item.kuliner.nama,
+                    'quantity': item.quantity,
+                    'price': item.kuliner.harga,
+                  },
+                )
+                .toList(),
+        'total_amount': totalAmount,
+      };
+
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/api/pesanan'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(orderData),
       );
-    } else {
-      throw Exception('Gagal membuat pesanan: ${response.body}');
-    }
-  } catch (e) {
-    if (mounted) {
+
+      if (response.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Berhasil'),
+                content: const Text('Pesanan berhasil dikirim!'),
+                actions: [
+                  TextButton(
+                    onPressed:
+                        () => Navigator.popUntil(
+                          context,
+                          (route) => route.isFirst,
+                        ),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+        );
+      } else {
+        throw Exception('Gagal: ${response.body}');
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal membuat pesanan: $e'),
+          content: Text('Gagal kirim pesanan: $e'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
         ),
       );
-    }
-  } finally {
-    if (mounted) {
-      setState(() {
-        isOrdering = false;
-      });
+    } finally {
+      setState(() => isOrdering = false);
     }
   }
-}
 }
 
 // Helper class for order items

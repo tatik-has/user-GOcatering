@@ -6,7 +6,7 @@ import '../models/menu_item_model.dart';
 import '../models/order_item_model.dart';
 
 class MenuService {
-  static const String baseUrl = 'http://192.168.0.102:8000/api'; // Ganti dengan URL API Anda
+  static const String baseUrl = 'http://192.168.0.107:8000/api'; // Ganti dengan URL API Anda
   
   static Future<List<MenuItem>> getMenuItems() async {
     try {

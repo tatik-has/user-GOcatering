@@ -1,44 +1,40 @@
-// lib/models/order_model.dart
 class OrderModel {
-  final int id;
-  final String type;
-  final String date;
-  final String? expiry;
-  final int price;
+  final int orderId;
+  final String customerName;
+  final String itemsSummary;
+  final String itemsQuantities;
+  final List<dynamic> detailedItems;
+  final String? requestNote;
+  final int totalAmount;
+  final String orderDate;
+  final String deliveryAddress;
   final String status;
-  final Map<String, dynamic>? details;
 
   OrderModel({
-    required this.id,
-    required this.type,
-    required this.date,
-    this.expiry,
-    required this.price,
+    required this.orderId,
+    required this.customerName,
+    required this.itemsSummary,
+    required this.itemsQuantities,
+    required this.detailedItems,
+    this.requestNote,
+    required this.totalAmount,
+    required this.orderDate,
+    required this.deliveryAddress,
     required this.status,
-    this.details,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
-      id: json['id'],
-      type: json['type'],
-      date: json['date'],
-      expiry: json['expiry'],
-      price: json['price'],
-      status: json['status'],
-      details: json['details'],
+      orderId: json['order_id'] ?? 0,
+      customerName: json['customer_name'] ?? '',
+      itemsSummary: json['items_summary'] ?? '',
+      itemsQuantities: json['items_quantities'] ?? '',
+      detailedItems: json['detailed_items'] ?? [],
+      requestNote: json['request_note'],
+      totalAmount: (json['total_amount'] as num).toInt(),
+      orderDate: json['order_date'] ?? '',
+      deliveryAddress: json['delivery_address'] ?? '',
+      status: json['status'] ?? 'pending',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'date': date,
-      'expiry': expiry,
-      'price': price,
-      'status': status,
-      'details': details,
-    };
   }
 }

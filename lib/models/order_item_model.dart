@@ -14,10 +14,13 @@ class OrderItem {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'menu_id': menuId,
-      'quantity': quantity,
-      'price': price,
-    };
-  }
+  return {
+    'menu_id': menuId,
+    'menu_name': menuName, // <-- ini penting jika backend tidak ambil relasi
+    'quantity': quantity,
+    'price': price,
+    'image': image,
+  };
+}
+
 }

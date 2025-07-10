@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order_model.dart';
 import '../services/order_service.dart';
 import '../widgets/order_item_widget.dart';
 
 class RiwayatPesananScreen extends StatefulWidget {
-  const RiwayatPesananScreen({super.key}); // Supaya bisa dipanggil pakai const
+  const RiwayatPesananScreen({super.key});
 
   @override
   State<RiwayatPesananScreen> createState() => _RiwayatPesananScreenState();
@@ -28,7 +29,15 @@ class _RiwayatPesananScreenState extends State<RiwayatPesananScreen> {
         error = null;
       });
 
-      final fetchedOrders = await OrderService.getMockOrders();
+      // Ambil token dari SharedPreferences (atau hardcode sementara untuk testing)
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+
+      if (token.isEmpty) {
+        throw Exception("Token tidak ditemukan");
+      }
+
+      final fetchedOrders = await OrderService.getOrders(token);
 
       setState(() {
         orders = fetchedOrders;
@@ -54,7 +63,7 @@ class _RiwayatPesananScreenState extends State<RiwayatPesananScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Riwayat pesanan',
+          'Riwayat Pesanan',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -77,51 +86,7 @@ class _RiwayatPesananScreenState extends State<RiwayatPesananScreen> {
   }
 
   Widget _buildLoadingWidget() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 16,
-                width: MediaQuery.of(context).size.width * 0.7,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 12,
-                width: MediaQuery.of(context).size.width * 0.5,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                height: 12,
-                width: MediaQuery.of(context).size.width * 0.6,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildErrorWidget() {
@@ -195,7 +160,7 @@ class _RiwayatPesananScreenState extends State<RiwayatPesananScreen> {
         backgroundColor: Colors.white,
         selectedItemColor: Colors.green[600],
         unselectedItemColor: Colors.grey[400],
-        currentIndex: 1, // Index untuk Riwayat
+        currentIndex: 1,
         elevation: 0,
         items: const [
           BottomNavigationBarItem(
@@ -217,7 +182,6 @@ class _RiwayatPesananScreenState extends State<RiwayatPesananScreen> {
               Navigator.pushReplacementNamed(context, '/home');
               break;
             case 1:
-              // Sudah di halaman Riwayat ini
               break;
             case 2:
               Navigator.pushReplacementNamed(context, '/profile');

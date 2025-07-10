@@ -39,8 +39,8 @@ class AppTextStyles {
 // Tambahkan class AppConstants ini
 class AppConstants {
   // Ganti dengan URL server Anda yang sebenarnya
-  static const String baseUrl = 'http://192.168.1.26:8000'; // Contoh URL
-  static const String imageUrl = 'http://192.168.1.26:8000'; // Untuk gambar
+  static const String baseUrl = 'http://192.168.0.107:8000'; // Contoh URL
+  static const String imageUrl = 'http://192.168.0.107:8000'; // Untuk gambar
   
   // Jika server online, contoh:
   // static const String baseUrl = 'https://your-domain.com';

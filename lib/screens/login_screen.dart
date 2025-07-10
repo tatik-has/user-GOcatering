@@ -3,6 +3,7 @@ import '../utils/constants.dart';
 import '../widgets/custom_button.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,33 +27,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    final result = await AuthService.login(
-      _emailController.text.trim(),
-      _passwordController.text,
+  final result = await AuthService.login(
+    _emailController.text.trim(),
+    _passwordController.text,
+  );
+
+  setState(() {
+    _isLoading = false;
+  });
+
+  if (result['success'] == true && result['token'] != null) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', result['token']);
+
+    Navigator.pushReplacementNamed(context, '/home');
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['message'] ?? 'Login gagal'),
+        backgroundColor: Colors.red,
+      ),
     );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (result['success']) {
-      // Navigate to home 
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: Image.asset(
-                            'images/logo catering.jpg', 
+                            'images/logo catering.jpg',
                             width: 160,
                             height: 160,
                             fit: BoxFit.cover,
