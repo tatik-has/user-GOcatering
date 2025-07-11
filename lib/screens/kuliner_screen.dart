@@ -61,25 +61,22 @@ class _KulinerScreenState extends State<KulinerScreen> {
     }
   }
 
-  // TODO: Implement this method to call your API
   Future<List<Kuliner>> _fetchMenusFromAPI() async {
     try {
       final response = await http.get(
-        Uri.parse(
-          '${AppConstants.baseUrl}/api/menu',
-        ), // Adjust endpoint as needed
+        Uri.parse('${AppConstants.baseUrl}/api/menu?kategori_utama=kuliner'),
         headers: {'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Adjust based on your API response structure
+
         List<Kuliner> menus =
             (data['data'] as List)
                 .map((item) => Kuliner.fromJson(item))
                 .where(
                   (menu) => menu.id != widget.kuliner.id,
-                ) // Exclude current item
+                ) // Hindari tampilkan menu yang sedang dibuka
                 .toList();
 
         setState(() {
@@ -98,18 +95,21 @@ class _KulinerScreenState extends State<KulinerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromRGBO(94, 143, 45, 1),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color.fromRGBO(255, 255, 255, 1),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Kuliner',
+          'Menu Harian',
           style: const TextStyle(
-            color: Colors.green,
+            color: Color.fromRGBO(255, 255, 255, 1),
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -656,7 +656,7 @@ class _KulinerScreenState extends State<KulinerScreen> {
       final orderData = {
         'customer_phone': _phoneController.text,
         'delivery_address': _addressController.text,
-        'customer_note': _requestController.text,
+        'request_note': _requestController.text,
         'items':
             selectedItems
                 .map(

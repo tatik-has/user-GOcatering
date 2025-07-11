@@ -39,8 +39,8 @@ class AppTextStyles {
 // Tambahkan class AppConstants ini
 class AppConstants {
   // Ganti dengan URL server Anda yang sebenarnya
-  static const String baseUrl = 'http://192.168.0.107:8000'; // Contoh URL
-  static const String imageUrl = 'http://192.168.0.107:8000'; // Untuk gambar
+  static const String baseUrl = 'https://e18c87dbbcc7.ngrok-free.app'; // Contoh URL
+  static const String imageUrl = 'https://e18c87dbbcc7.ngrok-free.app'; // Untuk gambar
   
   // Jika server online, contoh:
   // static const String baseUrl = 'https://your-domain.com';
@@ -48,4 +48,6 @@ class AppConstants {
   
   // Timeout untuk request
   static const Duration requestTimeout = Duration(seconds: 30);
+
+  static var apiUrl;
 }

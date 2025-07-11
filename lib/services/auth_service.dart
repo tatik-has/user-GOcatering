@@ -5,7 +5,7 @@ import '../models/user.dart';
 
 class AuthService {
   // Ganti dengan URL API website Anda
-  static const String baseUrl = 'http://192.168.0.107:8000/api';
+  static const String baseUrl = 'https://e18c87dbbcc7.ngrok-free.app/api';
 
   // Login
   static Future<Map<String, dynamic>> login(

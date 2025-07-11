@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/order_model.dart';
 
 class OrderService {
-  static const String baseUrl = 'http://192.168.0.107:8000/api';
+  static const String baseUrl = 'https://e18c87dbbcc7.ngrok-free.app/api';
 
   static Future<List<OrderModel>> getOrders(String token) async {
     try {
