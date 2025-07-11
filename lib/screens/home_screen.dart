@@ -290,114 +290,167 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPaketBulananSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Paket Bulanan', style: AppTextStyles.heading),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 220,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: listPaketBulanan.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final paket = listPaketBulanan[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => PaketDetailScreen(menuId: paket.id.toString()),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 180,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 127, 172, 81),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child:
-                              (paket.gambar?.isNotEmpty ?? false)
-                                  ? Image.network(
-                                    '${AppConstants.imageUrl}/storage/${paket.gambar}',
-                                    fit: BoxFit.cover,
-                                  )
-                                  : const Icon(Icons.fastfood, size: 40),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        paket.nama,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Color.fromRGBO(
-                            255,
-                            255,
-                            255,
-                            1,
-                          ), // Warna putih
-                        ),
-                      ),
-
-                      Text(
-                        paket.harga,
-                        style: const TextStyle(
-                          color: Color.fromRGBO(255, 255, 255, 1),
-                          fontSize: 12,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            paket.rating,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color.fromRGBO(
-                                255,
-                                255,
-                                255,
-                                1,
-                              ), // Warna putih
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+ Widget _buildPaketBulananSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text('Paket Bulanan', style: AppTextStyles.heading),
+      const SizedBox(height: 4),
+      const Text(
+        'Menu terlaris di sekitarmu',
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey,
         ),
-      ],
-    );
-  }
-
+      ),
+      const SizedBox(height: 12),
+      SizedBox(
+        height: 200, // Dikurangi dari 250 menjadi 200
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          itemCount: listPaketBulanan.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 16),
+          itemBuilder: (context, index) {
+            final paket = listPaketBulanan[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PaketDetailScreen(menuId: paket.id.toString()),
+                  ),
+                );
+              },
+              child: Container(
+                width: 160,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Gambar
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                      child: (paket.gambar?.isNotEmpty ?? false)
+                          ? Image.network(
+                              '${AppConstants.imageUrl}/storage/${paket.gambar}',
+                              width: double.infinity,
+                              height: 100, // Dikurangi dari 120 menjadi 100
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              width: double.infinity,
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.fastfood,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
+                    ),
+                    // Info section
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10), // Dikurangi dari 12 menjadi 10
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Nama paket - dibuat bold dan ukuran font disesuaikan
+                            Text(
+                              paket.nama,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold, // Dibuat bold
+                                fontSize: 16, // Dikurangi dari 18 menjadi 16
+                                color: Color(0xFF333333),
+                              ),
+                            ),
+                            // Bottom section dengan button dan rating
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Button Pesan
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, // Dikurangi dari 14
+                                    vertical: 5, // Dikurangi dari 6
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color.fromRGBO(94, 143, 45, 1),
+                                    borderRadius: BorderRadius.circular(14), // Dikurangi dari 16
+                                  ),
+                                  child: const Text(
+                                    'Pesan',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11, // Dikurangi dari 12
+                                      fontWeight: FontWeight.w600, // Dibuat sedikit lebih bold
+                                    ),
+                                  ),
+                                ),
+                                // Rating
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.orange,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 3), // Dikurangi dari 4
+                                    Text(
+                                      paket.rating,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
   Widget _buildKateringSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Katering', style: AppTextStyles.heading),
+        const SizedBox(height: 4),
+        const Text(
+          'Temukan selera makananmu',
+          style: TextStyle(fontSize: 14, color: Colors.grey),
+        ),
         const SizedBox(height: 12),
         Column(
           children:
@@ -416,58 +469,143 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.white,
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                katering.nama,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        // Gambar dengan overlay
+                        Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
                               ),
-                              Text(
-                                katering.harga,
-                                style: const TextStyle(
+                              child:
+                                  (katering.gambar?.isNotEmpty ?? false)
+                                      ? Image.network(
+                                        '${AppConstants.imageUrl}/storage/${katering.gambar}',
+                                        width: double.infinity,
+                                        height: 200,
+                                        fit: BoxFit.cover,
+                                      )
+                                      : Container(
+                                        width: double.infinity,
+                                        height: 200,
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.local_dining,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                            ),
+                            // Tombol love di kanan atas
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
                                   color: Color.fromRGBO(94, 143, 45, 1),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.favorite,
+                                  color: Color.fromARGB(255, 254, 255, 255),
+                                  size: 16,
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.orange,
-                                    size: 14,
+                            ),
+                          ],
+                        ),
+                        // Info section
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Nama, harga, dan rating
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      katering.nama,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      katering.harga,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star,
+                                          color: Colors.orange,
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          katering.rating,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Tombol pesan
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color.fromRGBO(94, 143, 45, 1),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Text(
+                                  'Pesan',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    katering.rating,
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child:
-                              (katering.gambar?.isNotEmpty ?? false)
-                                  ? Image.network(
-                                    '${AppConstants.imageUrl}/storage/${katering.gambar}',
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
-                                  )
-                                  : const Icon(Icons.local_dining, size: 40),
                         ),
                       ],
                     ),

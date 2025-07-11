@@ -229,7 +229,6 @@ class _PaketDetailScreenState extends State<PaketDetailScreen> {
                             SizedBox(height: 20),
                             Text(menuItem!.description, style: TextStyle(height: 1.5)),
                             SizedBox(height: 24),
-                            Text('Menu hari:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                             SizedBox(height: 12),
                             ...menuItem!.menuDetails.asMap().entries.map((entry) => Padding(
                                   padding: const EdgeInsets.only(bottom: 6),
